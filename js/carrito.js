@@ -1,94 +1,120 @@
-// Variables globales para la lógica del carrito
 let carrito = [];
-let listaProductosGlobal = [];
 
-// Elementos del DOM que maneja este archivo
-let selectProductos = document.querySelector("#select-productos");
-let btnAgregarProducto = document.querySelector("#btn-agregar-producto");
-let tablaCarrito = document.querySelector("#tabla-carrito tbody");
-let descuentoInput = document.querySelector("#descuento");
-let aumentoInput = document.querySelector("#aumento");
-let spanTotal = document.querySelector("#total-pedido");
+const btnAgregar = document.querySelector("#btn-agregar-producto");
+const selectProducto = document.querySelector("#select-productos");
+const tablaCarrito = document.querySelector("#tabla-carrito tbody");
+const descuentoInput = document.querySelector("#descuento");
+const aumentoInput = document.querySelector("#aumento");
+const totalPantalla = document.querySelector("#total-pedido");
 
-// Función para recibir la lista de productos desde el otro archivo (crear-pedido.js)
-function inicializarCarrito(productosBD) {
-    listaProductosGlobal = productosBD;
-    
-    if (btnAgregarProducto) {
-        btnAgregarProducto.addEventListener("click", () => {
-            agregarProductoAlCarrito();
+// Función que recibe los productos desde crear-pedido.js
+window.inicializarCarrito = function(productosDisponibles) {
+    if (btnAgregar) {
+        // Evitamos duplicar eventos limpiando el clon o usando una bandera
+        btnAgregar.replaceWith(btnAgregar.cloneNode(true));
+        const btnAgregarNuevo = document.querySelector("#btn-agregar-producto");
+
+        btnAgregarNuevo.addEventListener("click", (e) => {
+            e.preventDefault();
+            let optionSeleccionada = selectProducto.options[selectProducto.selectedIndex];
+            
+            if (!optionSeleccionada || optionSeleccionada.value === "" || optionSeleccionada.disabled) {
+                alert("Por favor selecciona un producto válido.");
+                return;
+            }
+
+            let idProducto = parseInt(optionSeleccionada.value);
+            let textoProducto = optionSeleccionada.text; // Ejemplo: "Hamburguesa - $30000.00"
+            let nombreProducto = textoProducto.split(" - $")[0];
+            
+            // Extraemos el precio limpiando el texto del option
+            let precioTexto = textoProducto.split(" - $")[1];
+            let precioProducto = parseFloat(precioTexto) || 0;
+
+            let existe = carrito.find(item => item.id_producto === idProducto);
+            if (existe) {
+                existe.cantidad += 1;
+            } else {
+                carrito.push({
+                    id_producto: idProducto,
+                    nombre: nombreProducto,
+                    precio: precioProducto,
+                    cantidad: 1
+                });
+            }
+
+            renderizarTablaCarrito();
+            calcularTotales();
         });
     }
+};
 
-    if (descuentoInput) descuentoInput.addEventListener("input", renderizarCarrito);
-    if (aumentoInput) aumentoInput.addEventListener("input", renderizarCarrito);
-}
-
-function agregarProductoAlCarrito() {
-    let idProductoSeleccionado = selectProductos.value;
-    let productoEncontrado = listaProductosGlobal.find(p => p.id == idProductoSeleccionado);
-
-    if (!productoEncontrado) {
-        alert("Por favor selecciona un producto válido");
-        return;
-    }
-
-    let itemExistente = carrito.find(item => item.id_producto == productoEncontrado.id);
-    if (itemExistente) {
-        itemExistente.cantidad += 1;
-    } else {
-        carrito.push({
-            id_producto: productoEncontrado.id,
-            nombre: productoEncontrado.nombre,
-            precio: parseFloat(productoEncontrado.precio),
-            cantidad: 1
-        });
-    }
-    renderizarCarrito();
-}
-
-function renderizarCarrito() {
+function renderizarTablaCarrito() {
     if (!tablaCarrito) return;
     tablaCarrito.innerHTML = "";
-    let subtotalGeneral = 0;
 
     carrito.forEach((item, index) => {
-        let subtotal = item.precio * item.cantidad;
-        subtotalGeneral += subtotal;
-
+        let subtotalItem = item.precio * item.cantidad;
         let fila = document.createElement("tr");
         fila.innerHTML = `
             <td>${item.nombre}</td>
-            <td>$${item.precio}</td>
-            <td><input type="number" class="form-control form-control-sm w-50" value="${item.cantidad}" min="1" onchange="cambiarCantidad(${index}, this.value)"></td>
-            <td>$${subtotal}</td>
-            <td><button type="button" class="btn btn-danger btn-sm" onclick="eliminarDelCarrito(${index})">X</button></td>
+            <td>$${item.precio.toLocaleString("es-CO")}</td>
+            <td>
+                <input type="number" value="${item.cantidad}" min="1" 
+                       class="form-control" style="width: 80px;" 
+                       onchange="actualizarCantidad(${index}, this.value)">
+            </td>
+            <td>$${subtotalItem.toLocaleString("es-CO")}</td>
+            <td>
+                <button type="button" class="btn btn-danger btn-sm" onclick="eliminarProducto(${index})">
+                    X
+                </button>
+            </td>
         `;
         tablaCarrito.appendChild(fila);
     });
+}
 
-    // Obtenemos el porcentaje ingresado (ej: 10 para un 10%)
+window.eliminarProducto = function(index) {
+    carrito.splice(index, 1);
+    renderizarTablaCarrito();
+    calcularTotales();
+};
+
+window.actualizarCantidad = function(index, nuevaCantidad) {
+    let cant = parseInt(nuevaCantidad);
+    if (cant > 0) {
+        carrito[index].cantidad = cant;
+    } else {
+        carrito[index].cantidad = 1;
+    }
+    renderizarTablaCarrito();
+    calcularTotales();
+};
+
+function calcularTotales() {
+    let subtotalGeneral = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
+    
+    // Tratamos el descuento como PORCENTAJE (%)
     let porcentajeDescuento = parseFloat(descuentoInput ? descuentoInput.value : 0) || 0;
-    let aumento = parseFloat(aumentoInput ? aumentoInput.value : 0) || 0;
+    let descuentoDinero = (subtotalGeneral * porcentajeDescuento) / 100;
+    
+    let aumentoDinero = parseFloat(aumentoInput ? aumentoInput.value : 0) || 0;
 
-    // Calculamos el valor en dinero del descuento basado en el subtotal
-    let valorDescuentoDinero = (subtotalGeneral * porcentajeDescuento) / 100;
-    
-    // Total final aplicando el porcentaje de descuento y sumando el envío/aumento
-    let totalFinal = (subtotalGeneral - valorDescuentoDinero) + aumento;
-    
-    if (spanTotal) {
-        spanTotal.textContent = `$${totalFinal > 0 ? totalFinal.toFixed(2) : 0}`;
+    let totalFinal = (subtotalGeneral + aumentoDinero) - descuentoDinero;
+    if (totalFinal < 0) totalFinal = 0;
+
+    if (totalPantalla) {
+        totalPantalla.textContent = `$${Math.round(totalFinal).toLocaleString("es-CO")}`;
     }
 }
 
-function obtenerDatosCarrito() {
-    let porcentajeDescuento = parseFloat(descuentoInput ? descuentoInput.value : 0) || 0;
-    let aumento = parseFloat(aumentoInput ? aumentoInput.value : 0) || 0;
-    
+// Función que lee el carrito y procesa los datos exactos para enviar al backend
+window.obtenerDatosCarrito = function() {
     let subtotalGeneral = carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
-    let valorDescuentoDinero = (subtotalGeneral * porcentajeDescuento) / 100;
-    let totalFinal = (subtotalGeneral - valorDescuentoDinero) + aumento;
+    let porcentajeDescuento = parseFloat(descuentoInput ? descuentoInput.value : 0) || 0;
+    let descuentoDinero = (subtotalGeneral * porcentajeDescuento) / 100; // Transformado a dinero real para la BD
+    let aumentoDinero = parseFloat(aumentoInput ? aumentoInput.value : 0) || 0;
 
     return {
         productos: carrito.map(item => ({
@@ -96,8 +122,24 @@ function obtenerDatosCarrito() {
             precio: item.precio,
             cantidad: item.cantidad
         })),
-        descuento: valorDescuentoDinero, // O puedes mandar porcentajeDescuento si tu BD guarda el porcentaje directo
-        aumento: aumento,
-        total: totalFinal
+        descuento: descuentoDinero, 
+        aumento: aumentoDinero,
+        total: (subtotalGeneral + aumentoDinero) - descuentoDinero
     };
-}
+};
+
+// Limpieza de inputs al hacer foco
+[descuentoInput, aumentoInput].forEach(input => {
+    if (input) {
+        input.addEventListener("focus", function() {
+            if (this.value === "0" || this.value === "0.00") this.value = "";
+            else this.select();
+        });
+        
+        input.addEventListener("blur", function() {
+            if (this.value.trim() === "") this.value = "0";
+        });
+
+        input.addEventListener("input", calcularTotales);
+    }
+});
