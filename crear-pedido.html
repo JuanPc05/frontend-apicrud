@@ -243,29 +243,42 @@
                                 </div>
 
                                 <!-- Productos carrito -->
-                                <div class="form-outline mb-4">
-                                    <h5>Productos del Pedido</h5>
-                                    <table class="table" id="tabla-carrito">
-                                        <thead class="table-light">
-                                            <tr>
-                                                <th>Producto</th>
-                                                <th>Precio</th>
-                                                <th>Cantidad</th>
-                                                <th>Subtotal</th>
-                                                <th>Acción</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <!-- Los estudiantes agregan productos aquí dinámicamente -->
-                                        </tbody>
-                                    </table>
-                                </div>
+<div class="form-outline mb-4">
+    <h5>Productos del Pedido</h5>
+    
+    <!-- Selector de Productos para agregar al carrito -->
+    <div class="row mb-3">
+        <div class="col-8">
+            <select id="select-productos" class="form-control">
+                <option selected disabled>Seleccionar Producto</option>
+            </select>
+        </div>
+        <div class="col-4">
+            <button type="button" id="btn-agregar-producto" class="btn btn-success btn-block">Agregar</button>
+        </div>
+    </div>
+
+                    <table class="table" id="tabla-carrito">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Producto</th>
+                                <th>Precio</th>
+                                <th>Cantidad</th>
+                                <th>Subtotal</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Los productos seleccionados se cargan aquí dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
 
                                 <!-- Descuento input -->
-                                <div class="form-outline mb-4">
-                                    <input type="number" id="descuento" class="form-control" value="0" min="0" />
-                                    <label class="form-label" for="descuento">Descuento ($)</label>
-                                </div>
+                                                                    <div class="form-outline mb-4">
+                                            <input type="number" id="descuento" class="form-control" value="0" min="0" />
+                                            <label class="form-label" for="descuento">Descuento (%)</label>
+                                        </div>
 
                                 <!-- Aumento input -->
                                 <div class="form-outline mb-4">
@@ -279,7 +292,9 @@
                                 </div>
                             
                                 <!-- Submit button -->
-                                <button type="submit" class="btn btn-primary btn-block mb-4">Crear Pedido</button>
+                                <!-- Botones de Crear y Cancelar -->
+                                <button type="submit" class="btn btn-primary btn-block mb-2">Crear Pedido</button>
+                                <a href="listado-pedidos.html" class="btn btn-secondary btn-block mb-4">Cancelar</a>
                             </form>
                         </div>
                         
@@ -344,14 +359,9 @@
     <script src="js/sb-admin-2.min.js"></script>
 
     <!-- Los estudiantes deben agregar aquí el JavaScript -->
-    <script>
-        // TODO: Implementar:
-        // 1. GET /api/clientes para llenar select de clientes
-        // 2. GET /api/productos para que puedan seleccionar productos
-        // 3. Agregar productos al carrito dinámicamente
-        // 4. Calcular total (productos + descuento + aumento)
-        // 5. POST a /api/pedidos con los datos del formulario
-    </script>
+   <script src="js/crear-pedido.js"></script>
+
+    <script src="js/carrito.js"></script>
 
 </body>
 
