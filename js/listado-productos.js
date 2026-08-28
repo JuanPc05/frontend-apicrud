@@ -1,4 +1,3 @@
-
 let tablaPro = document.querySelector("#tabla-productos tbody");
 
 
@@ -27,6 +26,8 @@ async function getProducts() {
         tablaPro.innerHTML = "";
 
         products.forEach((pro, index) => {
+            let id = pro.id_producto ?? pro.id;
+
             let fila = document.createElement("tr");
             fila.innerHTML = `
                 <td>${index + 1}</td>
@@ -38,8 +39,8 @@ async function getProducts() {
                     <img src="${pro.imagen}" width="100px">
                 </td>
                 <td>
-                    <button class="btn btn-warning">editar</button>
-                    <button class="btn btn-danger">borrar</button>
+                    <button class="btn btn-warning" onclick="location.href='actualizar-pro.html?id=${id}'">editar</button>
+                    <button class="btn btn-danger" onclick="eliminarProducto(${id}, this)">borrar</button>
                 </td>
             `;
             tablaPro.appendChild(fila);
