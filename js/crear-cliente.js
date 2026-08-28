@@ -1,3 +1,4 @@
+let formularioCliente = document.querySelector("#formulario-cliente")
 let nombreCli = document.querySelector("#nombre-cli");
 let apellidoCli = document.querySelector("#apellido-cli");
 let emailCli = document.querySelector("#email-cli");
@@ -7,7 +8,7 @@ let direccion2Cli = document.querySelector("#direccion2-cli");
 let descripcionCli = document.querySelector("#descripcion-cli");
 let btnCrear = document.querySelector("#btn-crear");
 
-// --- Punto de entrada: si la URL trae ?id=X, estamos en modo edición ---
+// --- Punto de entrada: si la URL trae id=X, estamos en modo edición ---
 const params = new URLSearchParams(window.location.search);
 const idEditando = params.get("id"); // null si no viene -> modo "crear"
 
@@ -17,7 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-btnCrear.addEventListener("click", guardarCliente);
 
 // --- Validación: separa la responsabilidad de "leer + validar" del resto ---
 function validForm() {
@@ -72,7 +72,6 @@ async function cargarClienteParaEditar(id) {
     }
 }
 
--
 async function guardarCliente() {
     let cliente = validForm();
     if (!cliente) return;
@@ -113,3 +112,8 @@ function limpiarFormulario() {
     direccion2Cli.value = "";
     descripcionCli.value = "";
 }
+
+formularioCliente.addEventListener("submit", (evento) => {
+    evento.preventDefault();
+    guardarCliente();
+})
